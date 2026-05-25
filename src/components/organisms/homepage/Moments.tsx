@@ -7,7 +7,7 @@ import type { StaticImageData } from 'next/image'
 
 import { getTextStrokeStyle } from '@/lib/textStroke'
 
-import supporterPlaceholder from '@/assets/images/homepage/moments/supporter-placeholder.jpg'
+import supporterPlaceholder from '@/assets/images/homepage/moments/supporter-placeholder.webp'
 
 type MomentPhoto = {
   id: number
