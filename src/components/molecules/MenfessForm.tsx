@@ -2,127 +2,116 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 
-import { createMenfessAction } from '@/actions/menfess'
-
 import { toast } from 'sonner'
+
+import { createMenfessAction } from '@/actions/menfess'
 
 import Send from '../atoms/icon/Send'
 
 export default function MenfessForm() {
-    const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useTransition()
 
-    const [from, setFrom] = useState("");
-    const [to, setTo] = useState("");
-    const [message, setMessage] = useState("");
-    
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-    
-    // auto resize textarea
-    useEffect(() => {
-        if (textareaRef.current) {
-        textareaRef.current.style.height = "auto";
-        textareaRef.current.style.height =
-            textareaRef.current.scrollHeight + "px";
-        }
-    }, [message]);
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [message, setMessage] = useState('')
 
-    async function submitAction(formData: FormData) {
-        const result = await createMenfessAction(formData)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-        if (!result.success) {
-            toast.error(
-                result.error ?? result.message
-            )
-            return
-        }
+  // auto resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'
+    }
+  }, [message])
 
-        toast.success(
-            'Menfess berhasil dikirim!'
-        )
+  async function submitAction(formData: FormData) {
+    const result = await createMenfessAction(formData)
 
-        setFrom('')
-        setTo('')
-        setMessage('')
+    if (!result.success) {
+      toast.error(result.error?.toLowerCase() ?? result.message.toLowerCase())
+      return
     }
 
-    return (
-        <form
-            action={(formData) =>
-                startTransition(async () => {
-                await submitAction(formData)
-                })
-            }
-            className="w-full px-6 text-white lg:px-4"
-          >
-            {/* From & To */}
-            <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mb-4 w-full">
-                {/* From */}
-                <div className="flex-1 flex flex-col gap-1">
-                    <input
-                        name="from"
-                        type="text"
-                        placeholder="From: ..."
-                        maxLength={24}
-                        value={from}
-                        onChange={(e) => setFrom(e.target.value)}
-                        className="h-12 px-4 border border-white bg-[#0B1E38]/70 outline-none text-white placeholder:text-white/50 transition rounded-xl lg:rounded-r-none lg:rounded-l-xl focus:border-white"
-                    />
-                      <span className="text-xs text-white/60 text-right">
-                        {from.length}/24
-                      </span>
-                </div>
+    toast.success('Menfess berhasil dikirim!')
 
-                {/* To */}
-                <div className="flex-1 flex flex-col gap-1">
-                    <input
-                        name="to"
-                        type="text"
-                        placeholder="To: ..."
-                        maxLength={24}
-                        value={to}
-                        onChange={(e) => setTo(e.target.value)}
-                        className="h-12 px-4 border border-white bg-[#0B1E38]/70 outline-none text-white placeholder:text-white/50 transition rounded-xl lg:rounded-l-none lg:rounded-r-xl focus:border-white"
-                    />
-                      <span className="text-xs text-white/60 text-right">
-                        {to.length}/24
-                      </span>
-                </div>
-            </div>
+    setFrom('')
+    setTo('')
+    setMessage('')
 
-            {/* Message & Send */}
-            <div className="flex flex-col lg:flex-row gap-3 w-full items-stretch">
-                {/* Message */}
-                <div className="flex-1 flex flex-col gap-1">
-                    <textarea
-                        ref={textareaRef}
-                        name="message"
-                        placeholder="Type your message here..."
-                        maxLength={240}
-                        rows={1}
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className="min-h-[60px] max-h-[300px] resize-none overflow-hidden border border-white bg-[#0B1E38]/70 px-4 py-4 outline-none text-white placeholder:text-white/50 
-                                  transition rounded-xl lg:rounded-r-none lg:rounded-l-xl focus:border-white"
-                    />
-                      <span className="text-xs text-white/60 text-right">
-                        {message.length}/240
-                      </span>
-                </div>
+    window.dispatchEvent(new Event('menfess:created'))
+  }
 
-                {/* Send Button */}
-                <button
-                    type="submit"
-                    disabled={isPending}
-                    className="h-[60px] lg:h-auto lg:self-stretch w-full lg:w-[120px] border border-white bg-[#0B1E38]/70 flex items-center justify-center gap-2 text-white 
-                              transition transform hover:scale-[1.02] hover:bg-[#132B66]/70 rounded-xl lg:rounded-l-none lg:rounded-r-xl cursor-pointer"
-                >
-                  <span>
-                    <Send width={20} height={20} />
-                  </span>
-                  
-                  {isPending ? 'Sending...' : 'Send'}
-                </button>
-            </div>
-        </form>
-    )
+  return (
+    <form
+      action={(formData) =>
+        startTransition(async () => {
+          await submitAction(formData)
+        })
+      }
+      className="w-full px-6 text-white lg:px-4"
+    >
+      {/* From & To */}
+      <div className="mb-4 flex w-full flex-col gap-4 lg:flex-row lg:gap-6">
+        {/* From */}
+        <div className="flex flex-1 flex-col gap-1">
+          <input
+            name="from"
+            type="text"
+            placeholder="From: ..."
+            maxLength={24}
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="h-12 rounded-xl border border-white bg-[#0B1E38]/70 px-4 text-white transition outline-none placeholder:text-white/50 focus:border-white lg:rounded-l-xl lg:rounded-r-none"
+          />
+          <span className="text-right text-xs text-white/60">{from.length}/24</span>
+        </div>
+
+        {/* To */}
+        <div className="flex flex-1 flex-col gap-1">
+          <input
+            name="to"
+            type="text"
+            placeholder="To: ..."
+            maxLength={24}
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="h-12 rounded-xl border border-white bg-[#0B1E38]/70 px-4 text-white transition outline-none placeholder:text-white/50 focus:border-white lg:rounded-l-none lg:rounded-r-xl"
+          />
+          <span className="text-right text-xs text-white/60">{to.length}/24</span>
+        </div>
+      </div>
+
+      {/* Message & Send */}
+      <div className="flex w-full flex-col items-stretch gap-3 lg:flex-row">
+        {/* Message */}
+        <div className="flex flex-1 flex-col gap-1">
+          <textarea
+            ref={textareaRef}
+            name="message"
+            placeholder="Type your message here..."
+            maxLength={240}
+            rows={1}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="max-h-[300px] min-h-[60px] resize-none overflow-hidden rounded-xl border border-white bg-[#0B1E38]/70 px-4 py-4 text-white transition outline-none placeholder:text-white/50 focus:border-white lg:rounded-l-xl lg:rounded-r-none"
+          />
+          <span className="text-right text-xs text-white/60">{message.length}/240</span>
+        </div>
+
+        {/* Send Button */}
+        <button
+          type="submit"
+          disabled={isPending}
+          className="flex h-[60px] w-full transform cursor-pointer items-center justify-center gap-2 rounded-xl border border-white bg-[#0B1E38]/70 text-white transition hover:scale-[1.02] hover:bg-[#132B66]/70 lg:h-auto lg:w-[120px] lg:self-stretch lg:rounded-l-none lg:rounded-r-xl"
+        >
+          <span>
+            <Send width={20} height={20} />
+          </span>
+
+          {isPending ? 'Sending...' : 'Send'}
+        </button>
+      </div>
+    </form>
+  )
 }

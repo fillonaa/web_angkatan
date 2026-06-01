@@ -12,6 +12,72 @@ const ITEMS_PER_PAGE = 6
 const getReactionStateKey = (id: string, reaction: MenfessReactionName) =>
   `menfess-reaction-state:${id}:${reaction}`
 
+type MenfessProps = {
+  initialPage?: number
+}
+
+const sanitizePage = (page: number) => {
+  if (!Number.isFinite(page)) {
+    return 1
+  }
+
+  return Math.max(1, Math.floor(page))
+}
+
+const getPageFromCurrentUrl = () => {
+  if (typeof window === 'undefined') {
+    return 1
+  }
+
+  const page = Number.parseInt(
+    new URLSearchParams(window.location.search).get('page') ?? '',
+    10
+  )
+
+  return sanitizePage(page)
+}
+
+const updatePageInUrl = (page: number, mode: 'push' | 'replace' = 'push') => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  const url = new URL(window.location.href)
+  url.searchParams.set('page', String(sanitizePage(page)))
+
+  const nextUrl = `${url.pathname}${url.search}${url.hash}`
+
+  if (nextUrl === `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+    return
+  }
+
+  if (mode === 'replace') {
+    window.history.replaceState(null, '', nextUrl)
+    return
+  }
+
+  window.history.pushState(null, '', nextUrl)
+}
+
+const getReactionStatesForItems = (items: MenfessRecord[]) => {
+  if (typeof window === 'undefined') {
+    return {}
+  }
+
+  const nextStates: Record<string, Partial<Record<MenfessReactionName, boolean>>> = {}
+
+  items.forEach((item) => {
+    nextStates[item.id] = {
+      laugh: window.localStorage.getItem(getReactionStateKey(item.id, 'laugh')) === '1',
+      love: window.localStorage.getItem(getReactionStateKey(item.id, 'love')) === '1',
+      sad: window.localStorage.getItem(getReactionStateKey(item.id, 'sad')) === '1',
+      angry: window.localStorage.getItem(getReactionStateKey(item.id, 'angry')) === '1'
+    }
+  })
+
+  return nextStates
+}
+
 const getPaginationItems = (
   currentPage: number,
   totalPages: number
@@ -50,15 +116,18 @@ const getPaginationItems = (
   return pages
 }
 
-const Menfess = () => {
-  const [currentPage, setCurrentPage] = useState(1)
+const Menfess = ({ initialPage = 1 }: MenfessProps) => {
+  const [currentPage, setCurrentPage] = useState(() => sanitizePage(initialPage))
   const [items, setItems] = useState<MenfessRecord[]>([])
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [refreshKey, setRefreshKey] = useState(0)
   const [updatingReactionId, setUpdatingReactionId] = useState<string | null>(null)
   const [reactionStates, setReactionStates] = useState<Record<string, Partial<Record<MenfessReactionName, boolean>>>>({})
 
   useEffect(() => {
+    let ignore = false
+
     const loadMenfess = async () => {
       setLoading(true)
 
@@ -68,43 +137,79 @@ const Menfess = () => {
       })
 
       if (result.success && result.data) {
-        setItems(result.data.items)
-
-        setTotalPages(
-          Math.max(
-            1,
-            Math.ceil(
-              result.data.total /
-                ITEMS_PER_PAGE
-            )
+        const nextTotalPages = Math.max(
+          1,
+          Math.ceil(
+            result.data.total /
+              ITEMS_PER_PAGE
           )
         )
+
+        if (ignore) {
+          return
+        }
+
+        if (currentPage > nextTotalPages) {
+          setTotalPages(nextTotalPages)
+          setCurrentPage(nextTotalPages)
+          updatePageInUrl(nextTotalPages, 'replace')
+          return
+        }
+
+        setItems(result.data.items)
+        setReactionStates(getReactionStatesForItems(result.data.items))
+        setTotalPages(nextTotalPages)
       }
 
-      setLoading(false)
+      if (!ignore) {
+        setLoading(false)
+      }
     }
 
     loadMenfess()
-  }, [currentPage])
+
+    return () => {
+      ignore = true
+    }
+  }, [currentPage, refreshKey])
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
+    const handlePopState = () => {
+      setCurrentPage(getPageFromCurrentUrl())
     }
 
-    const nextStates: Record<string, Partial<Record<MenfessReactionName, boolean>>> = {}
+    window.addEventListener('popstate', handlePopState)
 
-    items.forEach((item) => {
-      nextStates[item.id] = {
-        laugh: window.localStorage.getItem(getReactionStateKey(item.id, 'laugh')) === '1',
-        love: window.localStorage.getItem(getReactionStateKey(item.id, 'love')) === '1',
-        sad: window.localStorage.getItem(getReactionStateKey(item.id, 'sad')) === '1',
-        angry: window.localStorage.getItem(getReactionStateKey(item.id, 'angry')) === '1'
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleMenfessCreated = () => {
+      updatePageInUrl(1, 'replace')
+
+      if (currentPage === 1) {
+        setRefreshKey((previousKey) => previousKey + 1)
+        return
       }
-    })
 
-    setReactionStates(nextStates)
-  }, [items])
+      setCurrentPage(1)
+    }
+
+    window.addEventListener('menfess:created', handleMenfessCreated)
+
+    return () => {
+      window.removeEventListener('menfess:created', handleMenfessCreated)
+    }
+  }, [currentPage])
+
+  const goToPage = (page: number) => {
+    const nextPage = Math.min(totalPages, sanitizePage(page))
+
+    updatePageInUrl(nextPage)
+    setCurrentPage(nextPage)
+  }
 
   const setReactionState = (id: string, reaction: MenfessReactionName, active: boolean) => {
     if (typeof window !== 'undefined') {
@@ -232,9 +337,7 @@ const Menfess = () => {
             <button
               disabled={currentPage === 1}
               onClick={() =>
-                setCurrentPage(
-                  (prev) => prev - 1
-                )
+                goToPage(currentPage - 1)
               }
               className={`
                 flex h-8 w-8 items-center justify-center rounded transition
@@ -267,9 +370,7 @@ const Menfess = () => {
                 <button
                   key={item}
                   onClick={() =>
-                    setCurrentPage(
-                      item as number
-                    )
+                    goToPage(item as number)
                   }
                   className={`
                     flex h-8 w-8 items-center justify-center rounded transition
@@ -289,9 +390,7 @@ const Menfess = () => {
             <button
               disabled={currentPage === totalPages}
               onClick={() =>
-                setCurrentPage(
-                  (prev) => prev + 1
-                )
+                goToPage(currentPage + 1)
               }
               className={`
                 flex h-8 w-8 items-center justify-center rounded transition

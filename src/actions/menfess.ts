@@ -2,6 +2,7 @@
 
 import { ZodError } from 'zod'
 
+import { getModerationBlockMessage, moderateMenfessPayload } from '@/lib/menfess/moderation'
 import { menfessPayloadSchema, normalizeMenfessPayload, type MenfessPayloadInput } from '@/lib/menfess/schema'
 import { createSupabaseAnonymousClient, createSupabaseServiceRoleClient } from '@/lib/supabase/server'
 import type { ActionResult, MenfessListData, MenfessRecord } from '@/types/menfess'
@@ -56,6 +57,16 @@ export async function createMenfessAction(
 ): Promise<ActionResult<MenfessRecord>> {
   try {
     const payload = menfessPayloadSchema.parse(normalizeMenfessPayload(input))
+    const moderation = await moderateMenfessPayload(payload)
+
+    if (!moderation.allowed) {
+      return {
+        success: false,
+        message: 'Menfess message was blocked by moderation.',
+        error: getModerationBlockMessage(moderation.reason)
+      }
+    }
+
     const supabase = createSupabaseAnonymousClient()
 
     const { data, error } = await supabase
