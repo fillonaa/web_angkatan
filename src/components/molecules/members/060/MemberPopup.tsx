@@ -51,6 +51,7 @@ const MemberPopup = ({ isOpen, onClose }: MemberPopupProps) => {
       />
 
       <div className="border-neutral-cs-10 bg-blue-cs-40 relative z-10 max-h-[calc(100vh-9rem)] w-full max-w-[720px] animate-[member-popup-show_200ms_ease-out] overflow-y-auto rounded-2xl border-2 p-6 text-white shadow-xl sm:max-h-[calc(100vh-10rem)] sm:p-8">
+        <img src="https://cdn.terminaltrove.com/m/a03290ca-6b48-4c34-9970-93174008e7c8.gif" alt="" className="absolute inset-0 h-full w-full object-cover" />
         <button
           type="button"
           aria-label="Close member detail"
