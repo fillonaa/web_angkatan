@@ -10,26 +10,32 @@ import SpotifyEmbed from '@/components/molecules/SpotifyEmbed'
 
 import ProfileImage from './image.png'
 
-// ─────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────
-type Step = 1 | 2 | 3
+type Step = 1 | 2
 
 type MemberPopupProps = {
   isOpen: boolean
   onClose: () => void
 }
 
+const FLOWERS = ['🌸', '🌼', '🌺', '🌷']
+
 // ─────────────────────────────────────────
-// STEP 1 — ENVELOPE PAGE
+// STEP 1 — KERTAS FLIP + KELINCI
 // ─────────────────────────────────────────
-function EnvelopePage({ onNext }: { onNext: () => void }) {
-  const [opened, setOpened] = useState(false)
+function NotePage({ onNext }: { onNext: () => void }) {
+  const [flipped, setFlipped] = useState(false)
+
+  function handleFlip() {
+    if (flipped) return
+    setFlipped(true)
+  }
 
   return (
     <div
       style={{
-        minHeight: '100vh',
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -39,26 +45,123 @@ function EnvelopePage({ onNext }: { onNext: () => void }) {
       }}
     >
       <style>{`
-        @keyframes envelopeLetter {
-          from { transform: translateY(0px); }
-          to   { transform: translateY(-60px); }
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
+
+        @keyframes noteSlideIn {
+          from { opacity: 0; transform: translateY(30px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes envelopeFlap {
-          from { transform: rotateX(0deg); }
-          to   { transform: rotateX(160deg); }
+        @keyframes readyFadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-        .env-letter-anim {
-          animation: envelopeLetter 0.4s ease 0.2s forwards;
+        @keyframes bunnyHop {
+          0%   { transform: translateY(0px) scaleY(1) scaleX(1); }
+          15%  { transform: translateY(-18px) scaleY(1.08) scaleX(0.93); }
+          30%  { transform: translateY(0px) scaleY(0.92) scaleX(1.08); }
+          40%  { transform: translateY(0px) scaleY(1) scaleX(1); }
+          55%  { transform: translateY(-12px) scaleY(1.05) scaleX(0.95); }
+          68%  { transform: translateY(0px) scaleY(0.95) scaleX(1.05); }
+          75%  { transform: translateY(0px) scaleY(1) scaleX(1); }
+          100% { transform: translateY(0px) scaleY(1) scaleX(1); }
         }
-        .env-flap-anim {
-          animation: envelopeFlap 0.4s ease forwards;
+        @keyframes earWiggle {
+          0%,100% { transform: rotate(0deg); }
+          25%     { transform: rotate(-8deg); }
+          75%     { transform: rotate(8deg); }
+        }
+        @keyframes tailBounce {
+          0%,100% { transform: scale(1); }
+          50%     { transform: scale(1.3); }
+        }
+
+        .note-scene {
+          perspective: 900px;
+          width: 280px;
+          height: 340px;
+          cursor: pointer;
+          animation: noteSlideIn 0.55s cubic-bezier(.4,.2,.2,1) forwards;
+          margin-bottom: 20px;
+        }
+        .note-flipper {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          transform-style: preserve-3d;
+          transition: transform 0.7s cubic-bezier(.4,.2,.2,1);
+        }
+        .note-flipper.flipped {
+          transform: rotateY(180deg);
+        }
+        .nface {
+          position: absolute;
+          inset: 0;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          border-radius: 18px;
+          border: 1.5px solid #ffd6e7;
+          background: white;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 24px rgba(224,90,138,0.13);
+          -webkit-mask-image: radial-gradient(circle at 50% -1px, transparent 9px, black 9px);
+          mask-image: radial-gradient(circle at 50% -1px, transparent 9px, black 9px);
+          padding: 24px 20px;
+        }
+        .nface-back {
+          transform: rotateY(180deg);
+          background: linear-gradient(160deg, #fff0f8, #fffde7);
+          border-color: #ffd6e7;
+        }
+
+        .bunny-wrap {
+          animation: bunnyHop 1.6s ease-in-out infinite;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .ear-left  { animation: earWiggle 0.8s ease-in-out infinite; transform-origin: bottom center; }
+        .ear-right { animation: earWiggle 0.8s ease-in-out 0.15s infinite; transform-origin: bottom center; }
+        .bunny-tail { animation: tailBounce 0.8s ease-in-out infinite; }
+
+        .note-title {
+          font-family: 'Dancing Script', cursive;
+          font-size: 32px;
+          color: #d77fa6;
+          text-align: center;
+          line-height: 1.2;
+          margin-bottom: 8px;
+        }
+        .note-subtitle {
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          color: #c4a0b5;
+          text-align: center;
+          text-transform: uppercase;
+          margin-bottom: 14px;
+        }
+        .note-hint {
+          font-size: 10px;
+          color: #e8a0c0;
+          font-weight: 600;
+          margin-top: 10px;
+          letter-spacing: 0.5px;
+        }
+
+        .ready-wrap {
+          animation: readyFadeIn 0.4s ease forwards;
+          text-align: center;
+          width: 100%;
+          margin-top: 16px;
         }
         .ready-btn {
-          margin-top: 28px;
-          padding: 12px 36px;
+          padding: 11px 36px;
           border-radius: 999px;
           border: none;
-          background: linear-gradient(135deg, #ffd6e7, #bde0fe);
+          background: linear-gradient(135deg, #cce6fb, #ec81ad);
           color: #5a3045;
           font-size: 15px;
           font-weight: 700;
@@ -68,172 +171,100 @@ function EnvelopePage({ onNext }: { onNext: () => void }) {
         .ready-btn:hover { transform: translateY(-2px) scale(1.04); }
       `}</style>
 
-      <h1 style={{ fontSize: 32, fontWeight: 700, color: '#d77fa6', marginBottom: 8 }}>
+      <p style={{ color: '#d77fa6', fontSize: 13, fontWeight: 700, marginBottom: 16, letterSpacing: 0.5 }}>
         💌 You&apos;ve Got Mail!
-      </h1>
-      <p style={{ color: '#8b6d7b', fontSize: 14, marginBottom: 32, textAlign: 'center' }}>
-        Klik amplop dulu ya...
       </p>
 
-      {/* Amplop */}
-      <div
-        onClick={() => setOpened(true)}
-        style={{
-          position: 'relative',
-          width: 220,
-          height: 160,
-          cursor: opened ? 'default' : 'pointer',
-          marginBottom: 8,
-        }}
-      >
-        {/* Flap */}
-        <div
-          className={opened ? 'env-flap-anim' : ''}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: 0,
-            height: 0,
-            borderLeft: '110px solid transparent',
-            borderRight: '110px solid transparent',
-            borderTop: '80px solid #ffcde1',
-            transformOrigin: 'top center',
-            zIndex: 2,
-          }}
-        />
-        {/* Body */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            width: 220,
-            height: 140,
-            background: '#fff5f9',
-            border: '2px solid #f8b4c8',
-            borderRadius: '4px 4px 12px 12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Letter */}
-          <div
-            className={opened ? 'env-letter-anim' : ''}
-            style={{
-              width: 160,
-              height: 100,
-              background: 'white',
-              borderRadius: 8,
-              border: '1.5px solid #ffd6e7',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 32,
-            }}
-          >
-            💌
+      <div className="note-scene" onClick={handleFlip}>
+        <div className={`note-flipper${flipped ? ' flipped' : ''}`}>
+
+          {/* DEPAN — kelinci lompat */}
+          <div className="nface">
+            <div className="note-title">
+              Ilona&apos;s<br />Little Note
+            </div>
+            <div className="note-subtitle">✦-----------------------------------✦</div>
+
+            {/* Kelinci SVG pixel art */}
+            <div className="bunny-wrap">
+              <svg width="90" height="100" viewBox="0 0 90 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Telinga kiri */}
+                <g className="ear-left">
+                  <rect x="24" y="4" width="10" height="26" rx="5" fill="#f9c8dc"/>
+                  <rect x="26" y="7" width="6" height="18" rx="3" fill="#f48fb1"/>
+                </g>
+                {/* Telinga kanan */}
+                <g className="ear-right">
+                  <rect x="56" y="4" width="10" height="26" rx="5" fill="#f9c8dc"/>
+                  <rect x="58" y="7" width="6" height="18" rx="3" fill="#f48fb1"/>
+                </g>
+                {/* Kepala */}
+                <ellipse cx="45" cy="42" rx="22" ry="20" fill="#fde8f2"/>
+                {/* Mata kiri */}
+                <circle cx="37" cy="38" r="3.5" fill="#5a3045"/>
+                <circle cx="38.2" cy="36.8" r="1.2" fill="white"/>
+                {/* Mata kanan */}
+                <circle cx="53" cy="38" r="3.5" fill="#5a3045"/>
+                <circle cx="54.2" cy="36.8" r="1.2" fill="white"/>
+                {/* Pipi */}
+                <ellipse cx="36" cy="44" rx="5" ry="3" fill="#f9b8d4" opacity="0.6"/>
+                <ellipse cx="54" cy="44" rx="5" ry="3" fill="#f9b8d4" opacity="0.6"/>
+                {/* Hidung */}
+                <ellipse cx="45" cy="44" rx="2.5" ry="2" fill="#f48fb1"/>
+                {/* Mulut */}
+                <path d="M42 47 Q45 50 48 47" stroke="#e07aab" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+                {/* Badan */}
+                <ellipse cx="45" cy="70" rx="18" ry="16" fill="#fcedf4"/>
+                {/* Kaki depan kiri */}
+                <ellipse cx="31" cy="78" rx="7" ry="5" fill="#fac6d7"/>
+                {/* Kaki depan kanan */}
+                <ellipse cx="59" cy="78" rx="7" ry="5" fill="#fac6d7"/>
+                {/* Kaki belakang kiri */}
+                <ellipse cx="28" cy="84" rx="9" ry="5" fill="#fac6d7"/>
+                {/* Kaki belakang kanan */}
+                <ellipse cx="62" cy="84" rx="9" ry="5" fill="#fac6d7"/>
+                {/* Ekor */}
+                <g className="bunny-tail">
+                  <circle cx="63" cy="66" r="6" fill="white"/>
+                </g>
+              </svg>
+            </div>
+
+            <p className="note-hint">✦ klik untuk buka ✦</p>
           </div>
+
+          {/* BELAKANG — are you ready */}
+          <div className="nface nface-back">
+            <div style={{ fontSize: 36, marginBottom: 12 }}>🌷</div>
+            <p style={{
+              fontFamily: "'Palatino Linotype', Palatino, serif",
+              fontSize: 15,
+              color: '#d77fa6',
+              textAlign: 'center',
+              lineHeight: 1.3,
+              marginBottom: 8,
+            }}>
+              Welcome to my little corner<br />How's your day going?<br />Are you ready to get to know me?
+            </p>
+            <p style={{ fontSize: 11, color: '#c4a0b5', marginBottom: 20, textAlign: 'center' }}>
+              ✦ ✦ ✦
+            </p>
+            <div className="ready-wrap">
+              <button className="ready-btn" onClick={(e) => { e.stopPropagation(); onNext(); }}>
+                Ready ✨
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
-
-      {opened && (
-        <button className="ready-btn" onClick={onNext}>
-          Ready ✨
-        </button>
-      )}
     </div>
   )
 }
 
 // ─────────────────────────────────────────
-// STEP 2 — COOKIE GAME
+// STEP 2 — POPUP PROFILE
 // ─────────────────────────────────────────
-function CookieGame({ onFinish }: { onFinish: () => void }) {
-  const [bite, setBite] = useState(0)
-  const stages = ['🍪', '🍪', '🍪', '🍪', '🍪', '✨']
-
-  const handleClick = () => {
-    if (bite < 5) setBite(prev => prev + 1)
-  }
-
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #FBF2C0, #FFC8DD, #BDE0FE)',
-        padding: '2rem',
-      }}
-    >
-      <h1 style={{ color: '#d77fa6', fontSize: 32, fontWeight: 700 }}>
-        One More Thing...
-      </h1>
-      <p style={{ marginTop: 12, color: '#8b6d7b', textAlign: 'center', lineHeight: 1.6 }}>
-        Before you meet me,
-        <br />
-        help me finish this cookie 🍪
-      </p>
-
-      <button
-        onClick={handleClick}
-        style={{ border: 'none', background: 'transparent', cursor: bite < 5 ? 'pointer' : 'default', fontSize: 110, marginTop: 24, lineHeight: 1 }}
-      >
-        {stages[bite]}
-      </button>
-
-      <p style={{ marginTop: 16, color: '#8b6d7b' }}>
-        {Math.min(bite, 5)} / 5 bites
-      </p>
-
-      {/* Progress dots */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-        {[0, 1, 2, 3, 4].map(i => (
-          <div
-            key={i}
-            style={{
-              width: 14,
-              height: 14,
-              borderRadius: '50%',
-              background: bite > i ? '#f8b4c8' : '#ffd6e7',
-              border: '2px solid #f8b4c8',
-              transition: 'background 0.2s',
-            }}
-          />
-        ))}
-      </div>
-
-      {bite === 5 && (
-        <button
-          onClick={onFinish}
-          style={{
-            marginTop: 28,
-            padding: '12px 28px',
-            borderRadius: 999,
-            border: 'none',
-            background: '#A2D2FF',
-            color: '#1a3a5c',
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          Meet Fiorellin →
-        </button>
-      )}
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────
-// STEP 3 — MEMBER POPUP
-// ─────────────────────────────────────────
-const FLOWERS = ['🌸', '🌼', '🌺', '🌷']
-
 function MemberPopupContent({ onClose }: { onClose: () => void }) {
   const overlayRef = useRef<HTMLDivElement>(null)
 
@@ -312,16 +343,15 @@ function MemberPopupContent({ onClose }: { onClose: () => void }) {
         .social-wrapper:hover { transform:translateY(-2px) scale(1.05); }
         .coq-card {
           position:relative;
-          background:rgba(255,255,255,.35);
-          border:3px solid #ffe58f; border-radius:18px; overflow:hidden;
+          background: #eef7fe;
+          border:5px solid #bdeefe; border-radius:18px; overflow:hidden;
         }
         .coq-card::before {
           content:""; position:absolute; inset:4px;
-          border:2px dashed #ffd54f; border-radius:14px; pointer-events:none;
+          border:3px dashed #bdeefe; border-radius:14px; pointer-events:none;
         }
       `}</style>
 
-      {/* backdrop close */}
       <button
         type="button"
         aria-label="Close"
@@ -338,7 +368,6 @@ function MemberPopupContent({ onClose }: { onClose: () => void }) {
           color: '#5a3045',
         }}
       >
-        {/* close btn */}
         <button
           type="button"
           aria-label="Close"
@@ -349,7 +378,6 @@ function MemberPopupContent({ onClose }: { onClose: () => void }) {
           ✕
         </button>
 
-        {/* Foto spinning border */}
         <div className="profile-frame">
           <div className="profile-inner">
             <Image src={ProfileImage} alt="Profile Image" className="h-120 w-full object-cover object-center" />
@@ -361,19 +389,17 @@ function MemberPopupContent({ onClose }: { onClose: () => void }) {
           <p className="mt-1 text-sm font-semibold" style={{ color: '#5a8fc4' }}>5027251082 - Surabaya</p>
         </div>
 
-        {/* Social links */}
         <div className="mt-5 flex gap-3">
           <div className="social-wrapper"><Instagram username="llonaalin" /></div>
           <div className="social-wrapper"><LinkedInButtonLink username="fiorellin-ilona-27aa62343" /></div>
         </div>
 
         <div className="flex items-center gap-2 my-4">
-          <div style={{ flex: 1, height: 1, background: '#90c8f5' }} />
+          <div style={{ flex: 1, height: 1, background: '#fd9fda' }} />
           <span style={{ fontSize: 17 }}>🌸</span>
-          <div style={{ flex: 1, height: 1, background: '#90c8f5' }} />
+          <div style={{ flex: 1, height: 1, background: '#fd9fda' }} />
         </div>
 
-        {/* Cards */}
         <div className="grid gap-4 text-sm font-semibold sm:grid-cols-2">
           <div className="coq-card p-4">
             <p className="text-xs tracking-wide uppercase" style={{ color: '#3a7bbf' }}>🌼 Hobi</p>
@@ -381,24 +407,22 @@ function MemberPopupContent({ onClose }: { onClose: () => void }) {
           </div>
           <div className="coq-card p-4">
             <p className="text-xs tracking-wide uppercase" style={{ color: '#3a7bbf' }}>🌼 Fun Fact</p>
-            <p className="mt-2" style={{ color: '#1a3a5c' }}>Gasuka Matcha, maaf ya kayak rumput</p>
+            <p className="mt-2" style={{ color: '#1a3a5c' }}>Gasuka Matcha, Banyak yang bilang aku mirip jisoo blackpink (sepakat)</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 my-4">
-          <div style={{ flex: 1, height: 1, background: '#90c8f5' }} />
+          <div style={{ flex: 1, height: 1, background: '#fd9fda' }} />
           <span style={{ fontSize: 17 }}>🌸</span>
-          <div style={{ flex: 1, height: 1, background: '#90c8f5' }} />
+          <div style={{ flex: 1, height: 1, background: '#fd9fda' }} />
         </div>
 
-        {/* Lagu */}
         <div className="coq-card p-4">
           <p className="text-xs font-bold tracking-wide uppercase" style={{ color: '#3a7bbf' }}>🌼 Lagu Favorit</p>
           <p className="my-2 text-sm font-semibold" style={{ color: '#1a3a5c' }}>Begini Begitu</p>
           <SpotifyEmbed spotifyUrl="https://open.spotify.com/track/4yTEKXWBDWoazJWrjii0Hk?si=_4_Cf81fTayf1AtP62Z1Mg" />
         </div>
 
-        {/* Twinkle stars */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 18, flexWrap: 'wrap' }}>
           {[
             { icon: '✦', size: 18, delay: '0s',   color: '#90c8f5' },
@@ -431,7 +455,7 @@ function MemberPopupContent({ onClose }: { onClose: () => void }) {
 }
 
 // ─────────────────────────────────────────
-// MAIN EXPORT — mengatur step 1 → 2 → 3
+// MAIN EXPORT
 // ─────────────────────────────────────────
 const MemberPopup = ({ isOpen, onClose }: MemberPopupProps) => {
   const [mounted, setMounted] = useState(false)
@@ -439,7 +463,6 @@ const MemberPopup = ({ isOpen, onClose }: MemberPopupProps) => {
 
   useEffect(() => { setMounted(true) }, [])
 
-  // Reset step ke 1 setiap kali popup dibuka ulang
   useEffect(() => {
     if (isOpen) setStep(1)
   }, [isOpen])
@@ -448,9 +471,8 @@ const MemberPopup = ({ isOpen, onClose }: MemberPopupProps) => {
 
   return createPortal(
     <>
-      {step === 1 && <EnvelopePage onNext={() => setStep(2)} />}
-      {step === 2 && <CookieGame onFinish={() => setStep(3)} />}
-      {step === 3 && <MemberPopupContent onClose={onClose} />}
+      {step === 1 && <NotePage onNext={() => setStep(2)} />}
+      {step === 2 && <MemberPopupContent onClose={onClose} />}
     </>,
     document.body
   )
